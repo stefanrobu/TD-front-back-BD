@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Casino Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+<div class="container mt-4">
+
+    <h1>Casino - Login</h1>
+
+    <form id="loginForm" class="mb-4">
+        <div class="mb-3">
+            <label for="username" class="form-label">Username:</label>
+            <input type="text" id="username" class="form-control" required />
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Parola:</label>
+            <input type="password" id="password" class="form-control" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+
+    <div id="loginMessage"></div>
+
+    <h2>Jocuri disponibile</h2>
+    <div id="gamesList" class="row row-cols-1 row-cols-md-3 g-4">
+        <!-- Carduri jocuri aici -->
+    </div>
+
+</div>
+
+<script>
+const games = [
+    { id: 'burning-hot', name: 'Burning Hot', jackpot: 5000 },
+    { id: 'big-bass-splash', name: 'Big Bass Splash', jackpot: 7500 },
+    { id: 'mega-win', name: 'Mega Win', jackpot: 10000 }
+];
+
+function renderGames() {
+    const container = document.getElementById('gamesList');
+    container.innerHTML = '';
+    games.forEach(game => {
+        const card = document.createElement('div');
+        card.className = 'col';
+        card.innerHTML = `
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">${game.name}</h5>
+                    <p class="card-text">Jackpot: $${game.jackpot}</p>
+                    <a href="game.html?game=${game.id}" class="btn btn-success">Joacă</a>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+renderGames();
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    try {
+        const res = await fetch('https://localhost:7201/api/casino', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        if (!res.ok) throw new Error('Login eșuat');
+        const data = await res.json();
+        localStorage.setItem('token', data.token);
+        document.getElementById('loginMessage').innerHTML = `<div class="alert alert-success">Login reușit!</div>`;
+        // Poți redirecționa sau arăta alte elemente
+    } catch (err) {
+        document.getElementById('loginMessage').innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+    }
+});
+</script>
+</body>
+</html>

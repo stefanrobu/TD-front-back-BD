@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Profil și Tranzacții - Casino</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Profilul meu</h1>
+        <button id="logoutBtn" class="btn btn-danger">Logout</button>
+    </div>
+
+    <div id="userSold" class="mb-3">
+        <strong>Sold curent:</strong> <span>Încărcare...</span>
+    </div>
+
+    <h2>Tranzacții</h2>
+    <table class="table table-striped" id="tranzactiiTable">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Tip</th>
+                <th>Suma</th>
+                <th>Sold după</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Tranzacții aici -->
+        </tbody>
+    </table>
+
+    <h2>Rezumat financiar</h2>
+    <ul id="rezumatFinanciar" class="list-group mb-4">
+        <li class="list-group-item">Total depuneri: <span id="totalDepuneri">...</span></li>
+        <li class="list-group-item">Total câștiguri: <span id="totalCastiguri">...</span></li>
+        <li class="list-group-item">Total pierderi: <span id="totalPierderi">...</span></li>
+        <li class="list-group-item">Profit net: <span id="profitNet">...</span></li>
+    </ul>
+
+    <a href="index.html" class="btn btn-link">Înapoi la jocuri</a>
+</div>
+
+<script>
+const API_URL = 'https://localhost:7201/api/casino';
+const token = localStorage.getItem('token');
+
+if (!token) {
+    alert('Trebuie să te autentifici mai întâi!');
+    window.location.href = 'login.html';
+}
+
+// Logout
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem('token');
+    window.location.href = 'login.html';
+});
+
+const soldSpan = document.querySelector('#userSold span');
+const tbody = document.querySelector('#tranzactiiTable tbody');
+
+async function incarcaTranzactii() {
+    try {
+        const res = await fetch(`${API_URL}/tranzactii`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.status === 401) {
+            localStorage.removeItem('token');
+            alert('Sesiunea a expirat. Te rugăm să te autentifici din nou.');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        if (!res.ok) throw new Error('Eroare la încărcarea tranzacțiilor.');
+
+        const tranzactii = await res.json();
+        tbody.innerHTML = '';
+
+        tranzactii.forEach(t => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${new Date(t.data).toLocaleString()}</td>
+                <td>${t.tip}</td>
+                <td>${t.suma.toFixed(2)}</td>
+                <td>${t.soldDupa.toFixed(2)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        soldSpan.textContent = tranzactii.length > 0 ? tranzactii[0].soldDupa.toFixed(2) : '0.00';
+    } catch (err) {
+        soldSpan.textContent = 'Eroare';
+        console.error(err);
+    }
+}
+
+async function incarcaRezumat() {
+    try {
+        const res = await fetch(`${API_URL}/profit-pierderi`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.status === 401) {
+            localStorage.removeItem('token');
+            alert('Sesiunea a expirat. Te rugăm să te autentifici din nou.');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        if (!res.ok) throw new Error('Eroare la încărcarea rezumatului.');
+
+        const data = await res.json();
+        document.getElementById('totalDepuneri').textContent = data.totalDepuneri.toFixed(2);
+        document.getElementById('totalCastiguri').textContent = data.totalCastiguri.toFixed(2);
+        document.getElementById('totalPierderi').textContent = data.totalPierderi.toFixed(2);
+        document.getElementById('profitNet').textContent = data.profitNet.toFixed(2);
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+incarcaTranzactii();
+incarcaRezumat();
+</script>
+</body>
+</html>
