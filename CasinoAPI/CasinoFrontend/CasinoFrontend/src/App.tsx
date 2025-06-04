@@ -2,12 +2,19 @@ import { useEffect, useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import Layout from "./components/Layout"; // Asigură-te că e în folderul corect
-import HomePage from "./pages/index";
-import LoginPage from "./pages/LoginModal";
-import RegisterModal from "./pages/RegisterModal";
+import Navbar from "./components/Navbar";
+import Home from "./pages/index";
+import Autentificare from "./pages/LoginModal";
+import Inregistrare from "./pages/RegisterModal";
 import Profil from "./pages/profil";
-import GamePage from "./pages/game";
+import Jocuri from "./pages/game";
 import Tranzactii from "./pages/tranzactii";
+import Deposit from "./pages/deposit";
+
+import LoginModal from "./pages/LoginModal";
+import RegisterModal from "./pages/RegisterModal";
+import Game from "./pages/game";
+
 
 import bgImage from "./assets/background-casino.jpeg"; // Asigură-te că acest fișier există
 
@@ -51,14 +58,14 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Layout />}>
-              <Route index element={<HomePage />} />
-              <Route path="login" element={<LoginPage onClose={fakeOnClose} />} />
+              <Route index element={<Home />} />
+              <Route path="login" element={<LoginModal onClose={fakeOnClose} />} />
               <Route
                 path="register"
                 element={<RegisterModal onClose={fakeOnClose} isOpen={fakeIsOpen} />}
               />
               <Route path="profile" element={<Profil />} />
-              <Route path="games" element={<GamePage />} />
+              <Route path="games" element={<Game />} />
               <Route path="tranzactii" element={<Tranzactii />} />
             </Route>
           </Routes>
