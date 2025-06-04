@@ -1,0 +1,92 @@
+/* src/index.css */
+
+/* Reset CSS simplu */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Body general */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #121212; /* fundal întunecat pentru un look casino */
+  color: #f0f0f0;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* Link-uri */
+a {
+  color: #ffcc00;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: #ffd633;
+}
+
+/* Container general */
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+/* Headings */
+h1, h2, h3, h4 {
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+/* Buttons */
+button {
+  background-color: #ffcc00;
+  border: none;
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 5px;
+  color: #121212;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #ffd633;
+}
+
+/* Formular */
+input, select, textarea {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #444;
+  background-color: #222;
+  color: #f0f0f0;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #ffcc00;
+  box-shadow: 0 0 5px #ffcc00;
+}
+
+/* Navbar clasic */
+.navbar {
+  background-color: #1a1a1a;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Mesaje de eroare */
+.error {
+  color: #ff4d4d;
+  font-weight: 600;
+  margin-top: -10px;
+  margin-bottom: 10px;
+}
