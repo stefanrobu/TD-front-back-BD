@@ -1,8 +1,8 @@
 {
-  "name": "airswift",
+  "name": "betonhot",
   "version": "0.1.0",
   "private": true,
-  "proxy": "https://localhost:5001",
+  "proxy": "https://localhost:7201",
   "dependencies": {
     "@craco/craco": "^7.1.0",
     "@testing-library/dom": "^10.4.0",
