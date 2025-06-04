@@ -8,7 +8,6 @@ interface Tranzactie {
   tip: "Plată" | "Încasare";
 }
 
-// --- COMPONENTA RegisterPage ca pop-up ---
 const RegisterPage = ({ onClose }: { onClose: () => void }) => {
   const [formData, setFormData] = useState({
     prenume: "",
@@ -125,7 +124,6 @@ const RegisterPage = ({ onClose }: { onClose: () => void }) => {
   );
 };
 
-// --- COMPONENTA Tranzactii ---
 const Tranzactii = () => {
   const [tranzactii, setTranzactii] = useState<Tranzactie[]>([]);
   const [loading, setLoading] = useState(true);
@@ -203,7 +201,6 @@ const Tranzactii = () => {
   );
 };
 
-// --- COMPONENTA PRINCIPALĂ INDEX ---
 const IndexPage = () => {
   const [showRegister, setShowRegister] = useState(false);
   const [page, setPage] = useState<"tranzactii" | "home">("home");

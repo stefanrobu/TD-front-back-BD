@@ -83,7 +83,7 @@ const Navbar: React.FC = () => {
         }}
         title="Apasă rapid de 5 ori pentru un secret"
       >
-        ✈️ AirSwift
+         BetonHot
       </h1>
 
       <div
@@ -145,7 +145,7 @@ const Navbar: React.FC = () => {
           position: "relative",
         }}
       >
-        © 2025 AirSwift
+        © 2025 BetonHot
       </footer>
     </nav>
   );
