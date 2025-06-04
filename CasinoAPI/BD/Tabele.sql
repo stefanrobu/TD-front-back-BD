@@ -36,3 +36,5 @@ CREATE TABLE Tranzactii (
     DataTranzactie DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (IDUtilizator) REFERENCES Users(IDUtilizator)
 );
+select *from Users
+delete from Users

@@ -1,5 +1,6 @@
 ﻿using CasinoAPI.Data;
 using CasinoAPI.Models;
+using CasinoAPI.Dtos; // presupun că DTO-urile sunt aici
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -22,27 +23,36 @@ namespace CasinoAPI.Controllers
         }
 
         [HttpPost("register")]
-        public IActionResult Register([FromBody] User user)
+        public IActionResult Register([FromBody] RegisterDto dto)
         {
-            if (_context.Users.Any(u => u.Username == user.Username))
-                return BadRequest("Username deja folosit.");
+            if (_context.Users.Any(u => u.Username == dto.Username))
+                return BadRequest(new { message = "Username deja folosit." });
 
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.PasswordHash);
-            user.Sold = 0;
-            _context.Users.Add(user);
+            if (_context.Users.Any(u => u.Email == dto.Email))
+                return BadRequest(new { message = "Email deja folosit." });
+
+            var newUser = new User
+            {
+                Username = dto.Username,
+                Email = dto.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                Sold = 0,
+                DataInregistrare = DateTime.UtcNow
+            };
+
+            _context.Users.Add(newUser);
             _context.SaveChanges();
 
-            return Ok("Cont creat.");
+            return Ok(new { message = "Cont creat." });
         }
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] User login)
+        public IActionResult Login([FromBody] LoginDto dto)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Username == login.Username);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(login.PasswordHash, user.PasswordHash))
-                return Unauthorized("Date incorecte.");
+            var user = _context.Users.FirstOrDefault(u => u.Username == dto.Username);
+            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+                return Unauthorized(new { message = "Date incorecte." });
 
-            var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_config["Token"]);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -55,6 +65,8 @@ namespace CasinoAPI.Controllers
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
                     SecurityAlgorithms.HmacSha256Signature)
             };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
             return Ok(new { token = tokenHandler.WriteToken(token) });

@@ -2,6 +2,9 @@
 using CasinoAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace CasinoAPI.Controllers
 {
@@ -16,18 +19,38 @@ namespace CasinoAPI.Controllers
             _context = context;
         }
 
+        // GET: api/joc
         [HttpGet]
-        public IActionResult GetJocuri()
+        public async Task<IActionResult> GetJocuri()
         {
-            return Ok(_context.Jocuri.ToList());
+            var jocuri = await _context.Jocuri
+                .Select(j => new
+                {
+                    j.IDJoc,
+                    j.NumeJoc,
+                    j.TipJoc,
+                    j.PariuMinim,
+                    j.PariuMaxim
+                })
+                .ToListAsync();
+
+            return Ok(jocuri);
         }
 
-        [Authorize]
+        // POST: api/joc
+        [Authorize(Roles = "Admin")]
         [HttpPost]
-        public IActionResult AdaugaJoc(Joc joc)
+        public async Task<IActionResult> AdaugaJoc([FromBody] Joc joc)
         {
+            if (await _context.Jocuri.AnyAsync(j => j.NumeJoc == joc.NumeJoc))
+                return BadRequest("Jocul există deja.");
+
+            if (joc.PariuMinim < 0 || joc.PariuMaxim < 0 || joc.PariuMinim > joc.PariuMaxim)
+                return BadRequest("Valori invalide pentru pariuri.");
+
             _context.Jocuri.Add(joc);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+
             return Ok(joc);
         }
     }

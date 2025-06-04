@@ -3,6 +3,7 @@ using CasinoAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace CasinoAPI.Controllers
 {
@@ -32,6 +33,7 @@ namespace CasinoAPI.Controllers
             {
                 user.Id,
                 user.Username,
+                user.Email,
                 user.Sold
             });
         }
@@ -49,11 +51,9 @@ namespace CasinoAPI.Controllers
 
             return Ok(users);
         }
-
-        // Modificare sold user logat (depunere sau retragere)
         [Authorize]
-        [HttpPost("update-sold")]
-        public IActionResult UpdateSold([FromBody] decimal suma)
+        [HttpGet("/api/profile/sold")]
+        public IActionResult GetSold()
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
             var user = _context.Users.FirstOrDefault(u => u.Id == userId);
@@ -61,10 +61,34 @@ namespace CasinoAPI.Controllers
             if (user == null)
                 return NotFound();
 
-            user.Sold += suma;
-            _context.SaveChanges();
+            return Ok(new { sold = user.Sold });
+        }
 
-            return Ok(new { user.Sold });
+        // Modificare sold user logat (adăugare sau scădere)
+        [Authorize]
+        [HttpPut("update-sold")]
+        public async Task<IActionResult> UpdateSold([FromBody] decimal suma)
+        {
+            if (suma == 0)
+                return BadRequest("Suma trebuie să fie diferită de zero.");
+
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var user = await _context.Users.FindAsync(userId);
+
+            if (user == null)
+                return NotFound("Userul nu a fost găsit.");
+
+            if (user.Sold + suma < 0)
+                return BadRequest("Fonduri insuficiente pentru această operație.");
+
+            user.Sold += suma;
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                soldCurent = user.Sold,
+                mesaj = $"Soldul a fost actualizat cu {suma}."
+            });
         }
     }
 }

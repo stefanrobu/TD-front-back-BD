@@ -8,8 +8,8 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "login",
-        "Type": "CasinoAPI.Models.User",
+        "Name": "dto",
+        "Type": "CasinoAPI.Dtos.LoginDto",
         "IsRequired": true
       }
     ],
@@ -24,8 +24,8 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "user",
-        "Type": "CasinoAPI.Models.User",
+        "Name": "dto",
+        "Type": "CasinoAPI.Dtos.RegisterDto",
         "IsRequired": true
       }
     ],
@@ -33,7 +33,7 @@
   },
   {
     "ContainingType": "CasinoAPI.Controllers.CasinoController",
-    "Method": "Depunere",
+    "Method": "DepuneBani",
     "RelativePath": "api/Casino/depunere",
     "HttpMethod": "POST",
     "IsController": true,
@@ -75,6 +75,22 @@
   },
   {
     "ContainingType": "CasinoAPI.Controllers.CasinoController",
+    "Method": "RetrageBani",
+    "RelativePath": "api/Casino/retragere",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "CasinoAPI.Dtos.RetragereDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CasinoAPI.Controllers.CasinoController",
     "Method": "GetTranzactii",
     "RelativePath": "api/Casino/tranzactii",
     "HttpMethod": "GET",
@@ -103,10 +119,20 @@
     "Parameters": [
       {
         "Name": "joc",
-        "Type": "CasinoAPI.Models.Joc",
+        "Type": "Joc",
         "IsRequired": true
       }
     ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CasinoAPI.Controllers.UserController",
+    "Method": "GetSold",
+    "RelativePath": "api/profile/sold",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
     "ReturnTypes": []
   },
   {
@@ -128,8 +154,40 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "tranzactie",
-        "Type": "CasinoAPI.Models.Tranzactie",
+        "Name": "dto",
+        "Type": "CasinoAPI.Dtos.TranzactieCreateDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CasinoAPI.Controllers.TranzactieController",
+    "Method": "DepuneBani",
+    "RelativePath": "api/Tranzactie/depunere",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "suma",
+        "Type": "System.Decimal",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CasinoAPI.Controllers.TranzactieController",
+    "Method": "RetrageBani",
+    "RelativePath": "api/Tranzactie/retragere",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "CasinoAPI.Dtos.RetragereDto",
         "IsRequired": true
       }
     ],
@@ -159,7 +217,7 @@
     "ContainingType": "CasinoAPI.Controllers.UserController",
     "Method": "UpdateSold",
     "RelativePath": "api/User/update-sold",
-    "HttpMethod": "POST",
+    "HttpMethod": "PUT",
     "IsController": true,
     "Order": 0,
     "Parameters": [

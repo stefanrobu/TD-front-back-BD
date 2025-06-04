@@ -14,17 +14,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "#/components/schemas/RegisterDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "#/components/schemas/RegisterDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "#/components/schemas/RegisterDto"
               }
             }
           }
@@ -45,17 +45,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "#/components/schemas/LoginDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "#/components/schemas/LoginDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "#/components/schemas/LoginDto"
               }
             }
           }
@@ -90,6 +90,37 @@
               "schema": {
                 "type": "number",
                 "format": "double"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Casino/retragere": {
+      "post": {
+        "tags": [
+          "Casino"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetragereDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetragereDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetragereDto"
               }
             }
           }
@@ -219,17 +250,82 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Tranzactie"
+                "$ref": "#/components/schemas/TranzactieCreateDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/Tranzactie"
+                "$ref": "#/components/schemas/TranzactieCreateDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/Tranzactie"
+                "$ref": "#/components/schemas/TranzactieCreateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Tranzactie/depunere": {
+      "post": {
+        "tags": [
+          "Tranzactie"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "number",
+                "format": "double"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "number",
+                "format": "double"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "number",
+                "format": "double"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Tranzactie/retragere": {
+      "post": {
+        "tags": [
+          "Tranzactie"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetragereDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetragereDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetragereDto"
               }
             }
           }
@@ -265,8 +361,20 @@
         }
       }
     },
+    "/api/profile/sold": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/User/update-sold": {
-      "post": {
+      "put": {
         "tags": [
           "User"
         ],
@@ -305,26 +413,51 @@
       "Joc": {
         "type": "object",
         "properties": {
-          "id": {
+          "idJoc": {
             "type": "integer",
             "format": "int32"
           },
-          "nume": {
+          "numeJoc": {
             "type": "string",
             "nullable": true
           },
-          "imagineUrl": {
+          "tipJoc": {
             "type": "string",
             "nullable": true
           },
-          "jackpot": {
+          "pariuMinim": {
             "type": "number",
             "format": "double"
+          },
+          "pariuMaxim": {
+            "type": "number",
+            "format": "double"
+          },
+          "pariuri": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Pariu"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false
       },
-      "Tranzactie": {
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "password": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Pariu": {
         "type": "object",
         "properties": {
           "id": {
@@ -335,24 +468,98 @@
             "type": "integer",
             "format": "int32"
           },
+          "jocId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sumaPariata": {
+            "type": "number",
+            "format": "double"
+          },
+          "sumaCastigata": {
+            "type": "number",
+            "format": "double"
+          },
+          "dataPariu": {
+            "type": "string",
+            "format": "date-time"
+          },
           "user": {
             "$ref": "#/components/schemas/User"
           },
-          "data": {
+          "joc": {
+            "$ref": "#/components/schemas/Joc"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RegisterDto": {
+        "type": "object",
+        "properties": {
+          "username": {
             "type": "string",
-            "format": "date-time"
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "password": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "RetragereDto": {
+        "type": "object",
+        "properties": {
+          "suma": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Tranzactie": {
+        "type": "object",
+        "properties": {
+          "idTranzactie": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int32"
           },
           "suma": {
             "type": "number",
             "format": "double"
           },
-          "tip": {
+          "tipTranzactie": {
             "type": "string",
             "nullable": true
           },
-          "soldDupa": {
+          "dataTranzactie": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TranzactieCreateDto": {
+        "type": "object",
+        "properties": {
+          "suma": {
             "type": "number",
             "format": "double"
+          },
+          "tipTranzactie": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -372,6 +579,10 @@
             "minLength": 1,
             "type": "string"
           },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
           "passwordHash": {
             "minLength": 1,
             "type": "string"
@@ -379,6 +590,24 @@
           "sold": {
             "type": "number",
             "format": "double"
+          },
+          "dataInregistrare": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pariuri": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Pariu"
+            },
+            "nullable": true
+          },
+          "tranzactii": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Tranzactie"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false

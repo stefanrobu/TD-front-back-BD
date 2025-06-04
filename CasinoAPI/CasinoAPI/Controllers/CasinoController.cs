@@ -3,8 +3,9 @@ using CasinoAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using CasinoAPI.Dtos;
+
 namespace CasinoAPI.Controllers
 {
     [ApiController]
@@ -19,66 +20,12 @@ namespace CasinoAPI.Controllers
             _context = context;
         }
 
-        // POST api/casino/play
         [Authorize]
         [HttpPost("play")]
-        public IActionResult Play([FromBody] decimal sumaPariata)
+        public async Task<IActionResult> Play([FromBody] decimal sumaPariata)
         {
             if (sumaPariata <= 0)
                 return BadRequest("Suma pariată trebuie să fie mai mare decât 0.");
-
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var user = _context.Users.FirstOrDefault(u => u.Id == userId);
-
-            if (user == null)
-                return Unauthorized();
-
-            if (user.Sold < sumaPariata)
-                return BadRequest("Fonduri insuficiente.");
-
-            // Scădem suma pariata din sold initial
-            user.Sold -= sumaPariata;
-
-            // Simulăm câștigul: 30% șansă să câștige, cu multipli între 2x și 10x suma pariată
-            decimal castig = 0;
-            bool aCastigat = false;
-            int sansa = _random.Next(1, 101); // 1..100
-
-            if (sansa <= 30) // 30% șansă
-            {
-                aCastigat = true;
-                // multiplu câștig între 2 și 10
-                int multiplu = _random.Next(2, 11);
-                castig = sumaPariata * multiplu;
-                user.Sold += castig;
-            }
-
-            // Salvăm tranzacția
-            var tranzactie = new Tranzactie
-            {
-                UserId = userId,
-                Data = DateTime.Now,
-                Suma = aCastigat ? castig : -sumaPariata,
-                Tip = aCastigat ? "Castig" : "Pierdere",
-                SoldDupa = user.Sold
-            };
-
-            _context.Tranzactii.Add(tranzactie);
-            _context.SaveChanges();
-
-            return Ok(new
-            {
-                castig = castig,
-                soldCurent = user.Sold,
-                rezultat = aCastigat ? "Ai câștigat!" : "Ai pierdut."
-            });
-        }
-        [Authorize]
-        [HttpPost("depunere")]
-        public async Task<IActionResult> Depunere([FromBody] decimal suma)
-        {
-            if (suma <= 0)
-                return BadRequest("Suma trebuie să fie mai mare decât 0.");
 
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
@@ -86,74 +33,173 @@ namespace CasinoAPI.Controllers
             if (user == null)
                 return Unauthorized();
 
+            if (user.Sold < sumaPariata)
+                return BadRequest("Fonduri insuficiente.");
+
+            // Logica jocului
+            user.Sold -= sumaPariata;
+
+            decimal castig = 0;
+            bool aCastigat = false;
+            int sansa = _random.Next(1, 101); // 1..100
+
+            if (sansa <= 30) // 30% șansă să câștige
+            {
+                aCastigat = true;
+                int multiplu = _random.Next(2, 11);
+                castig = sumaPariata * multiplu;
+                user.Sold += castig;
+            }
+
+            // Creăm tranzacția corespunzătoare
+            var tranzactie = new Tranzactie
+            {
+                UserId = userId,
+                DataTranzactie = DateTime.UtcNow,
+                Suma = aCastigat ? castig : -sumaPariata,
+                TipTranzactie = aCastigat ? "castig" : "P=pierdere"
+            };
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                _context.Tranzactii.Add(tranzactie);
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(500, "A apărut o eroare la procesarea jocului.");
+            }
+
+            return Ok(new
+            {
+                castig,
+                soldCurent = user.Sold,
+                rezultat = aCastigat ? "Ai câștigat!" : "Ai pierdut."
+            });
+        }
+        [Authorize]
+        [HttpPost("retragere")]
+        public IActionResult RetrageBani([FromBody] RetragereDto dto)
+        {
+            if (dto.Suma <= 0)
+                return BadRequest(new { message = "Suma trebuie să fie pozitivă." });
+
+            //if (string.IsNullOrWhiteSpace(dto.CardId) || dto.CardId.Length < 4)
+               // return BadRequest(new { message = "ID Card invalid." });
+
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+
+            if (user == null)
+                return NotFound(new { message = "Utilizatorul nu există." });
+
+            if (user.Sold < dto.Suma)
+                return BadRequest(new { message = "Fonduri insuficiente." });
+
+            // Scădem suma
+            user.Sold -= dto.Suma;
+
+            // Adăugăm tranzacție
+            var tranzactie = new Tranzactie
+            {
+                UserId = userId,
+                Suma = dto.Suma,
+                TipTranzactie = "retragere",
+                DataTranzactie = DateTime.UtcNow
+            };
+
+            _context.Tranzactii.Add(tranzactie);
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                message = "Retragere efectuată cu succes.",
+                soldNou = user.Sold
+            });
+        }
+
+        [Authorize]
+        [HttpPost("depunere")]
+        public IActionResult DepuneBani([FromBody] decimal suma)
+        {
+            if (suma <= 0)
+                return BadRequest(new { message = "Suma trebuie să fie pozitivă." });
+
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+
+            if (user == null)
+                return NotFound(new { message = "Utilizatorul nu există." });
+
             user.Sold += suma;
 
             var tranzactie = new Tranzactie
             {
                 UserId = userId,
-                Data = DateTime.Now,
                 Suma = suma,
-                Tip = "Depunere",
-                SoldDupa = user.Sold
+                TipTranzactie = "depunere",
+                DataTranzactie = DateTime.UtcNow
             };
 
             _context.Tranzactii.Add(tranzactie);
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
 
             return Ok(new
             {
-                soldCurent = user.Sold,
-                mesaj = $"Depunere de {suma} realizată cu succes."
+                message = "Depunere efectuată cu succes.",
+                soldNou = user.Sold
             });
         }
 
+
         [Authorize]
         [HttpGet("tranzactii")]
-        public IActionResult GetTranzactii()
+        public async Task<IActionResult> GetTranzactii()
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            var tranzactii = _context.Tranzactii
+            var tranzactii = await _context.Tranzactii
                 .Where(t => t.UserId == userId)
-                .OrderByDescending(t => t.Data)
+                .OrderByDescending(t => t.DataTranzactie)
                 .Select(t => new
                 {
-                    t.Id,
-                    t.Data,
+                    t.IDTranzactie,
+                    t.DataTranzactie,
                     t.Suma,
-                    t.Tip,
-                    t.SoldDupa
+                    t.TipTranzactie
                 })
-                .ToList();
+                .ToListAsync();
 
             return Ok(tranzactii);
         }
 
         [Authorize]
         [HttpGet("profit-pierderi")]
-        public IActionResult GetProfitPierderi()
+        public async Task<IActionResult> GetProfitPierderi()
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
             var tranzactii = _context.Tranzactii.Where(t => t.UserId == userId);
 
-            // Calculăm total depuneri (tip = "Depunere")
-            var totalDepuneri = tranzactii
-                .Where(t => t.Tip == "Depunere")
-                .Sum(t => t.Suma);
+            var totalDepuneri = await tranzactii
+                .Where(t => t.TipTranzactie == "depunere")
+                .SumAsync(t => t.Suma);
 
-            // Total castiguri
-            var totalCastiguri = tranzactii
-                .Where(t => t.Tip == "Castig")
-                .Sum(t => t.Suma);
+            var totalCastiguri = await tranzactii
+                .Where(t => t.TipTranzactie == "castig")
+                .SumAsync(t => t.Suma);
 
-            // Total pierderi (notează că pierderile sunt negative în Suma)
-            var totalPierderi = tranzactii
-                .Where(t => t.Tip == "Pierdere")
-                .Sum(t => t.Suma);
+            var totalPierderi = await tranzactii
+                .Where(t => t.TipTranzactie == "pierdere")
+                .SumAsync(t => t.Suma);
 
-            // Profit net = castiguri + pierderi (pierderile fiind negative)
-            var profitNet = totalCastiguri + totalPierderi;
+            var profitNet = totalCastiguri + totalPierderi; // pierderile sunt negative
 
             return Ok(new
             {
